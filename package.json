@@ -1,17 +1,17 @@
 {
-  "name": "robopaint-mode-spiral",
+  "name": "robopaint-mode-comic",
   "version": "0.1.0",
   "type": "robopaint_mode",
-  "main": "spiral.js",
-  "author": "techninja",
+  "main": "comic.js",
+  "author": "docprofsky",
   "license": "MIT",
   "robopaint": {
     "core": true,
     "debug": true,
     "i18n": "native",
     "icon": "icon-print",
-    "index": "spiral.html",
-    "name": "spiral",
+    "index": "comic.html",
+    "name": "comic",
     "opensvg": false,
     "weight": 3,
     "dependencies": [
@@ -26,6 +26,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/techninja/robopaint-mode-spiral.git"
+    "url": "https://github.com/docprofsky/robopaint-mode-comic.git"
   }
 }
