@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "creator": "docprofsky",
+    "target": "en-US",
+    "release": "0.9.5",
+    "basetype": "mode"
+  },
+  "info":{
+    "description": "Raster paint a photo",
+    "title": "Raster Paint",
+    "detail": "Automatically paint a photo as a raster.",
+    "word": "Raster"
+  },
+  "status": {
+    "confirm": "Are you sure you want to cancel the current raster print?",
+    "printing": "Printing raster image with two-level height",
+    "cancelled": "Raster paint spooling and printing cancelled."
+  },
+  "filepick": {
+    "button": "Choose Picture",
+    "title": "Select image for tracing",
+    "files": "Common web format images"
+  }
+}
