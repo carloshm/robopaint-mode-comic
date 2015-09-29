@@ -1,5 +1,5 @@
 /**
- * @file Holds all RoboPaint spiral mode DOM code
+ * @file Holds all RoboPaint comic mode DOM code
  */
 "use strict";
 
@@ -30,7 +30,7 @@ mode.pageInitReady = function () {
 function paperLoadedInit() {
 
   // Build the initial Spiral
-  paper.loadSpiralImage(mode.path.dir + '/images/mona.jpg');
+  paper.loadComicImage(mode.path.dir + '/images/mona.jpg');
 
   // With Paper ready, send a single up to fill values for buffer & pen.
   mode.run('up');
@@ -71,7 +71,7 @@ mode.bindControls = function(){
     }
   });
 
-  // Pick file (mostly handled in the PaperScript spiral.ps.js)
+  // Pick file (mostly handled in the PaperScript comic.ps.js)
   $('#picker').click(function(){
     paper.pickComicImage();
   });
@@ -79,7 +79,7 @@ mode.bindControls = function(){
   // Bind pause click and functionality
   $('#pause').click(function() {
 
-    // With nothing in the queue, start spiralpaint!
+    // With nothing in the queue, start comicpaint!
     if (buffer.length === 0) {
       $('#pause')
         .removeClass('ready')
@@ -89,7 +89,7 @@ mode.bindControls = function(){
       $('#buttons button.normal').prop('disabled', true); // Disable options
       $('#cancel').prop('disabled', false); // Enable the cancel print button
 
-      // Actually go and paint the spiral
+      // Actually go and paint the comic
       paper.autoPaintSpiral();
 
     } else {

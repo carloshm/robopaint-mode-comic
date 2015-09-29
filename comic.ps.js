@@ -69,7 +69,7 @@ paper.resetSpiral = function(callback) {
   paper.motionPath.removeSegments(0); // Remove all motionPath segments
   grow = true;
 
-  paper.spiralComplete = callback;
+  paper.comicComplete = callback;
 
   // Transform the raster, so it fills the view:
   raster.fitBounds(view.bounds);
@@ -91,7 +91,7 @@ paper.resetSpiral = function(callback) {
 }
 
 // Automatically paint the single spiral path.
-paper.autoPaintSpiral = function(){
+paper.autoPaintComic = function(){
   // Wait for all these commands to stream in before starting to actually
   // run them. This ensures a smooth start.
   robopaint.pauseTillEmpty(true);
@@ -135,7 +135,7 @@ function onKeyDown(event) {
   }
 }
 
-paper.pickSpiralImage = function() {
+paper.pickComicImage = function() {
   mainWindow.dialog({
     type: 'OpenDialog',
     title: mode.t('filepick.title'),
@@ -147,7 +147,7 @@ paper.pickSpiralImage = function() {
       return;
     }
 
-    paper.loadSpiralImage(filePath[0]);
+    paper.loadComicImage(filePath[0]);
   });
 };
 
