@@ -1,5 +1,5 @@
 /**
- * @file Holds all RoboPaint spiral mode Paper.JS code
+ * @file Holds all RoboPaint comic mode Paper.JS code
  */
 
 canvas.paperInit(paper);
@@ -95,6 +95,8 @@ paper.autoPaintSpiral = function(){
   // Wait for all these commands to stream in before starting to actually
   // run them. This ensures a smooth start.
   robopaint.pauseTillEmpty(true);
+  
+  console.log(spiral);
 
   mode.run([
     'wash',
@@ -118,7 +120,7 @@ paper.autoPaintSpiral = function(){
     'wash',
     'park',
     ['status', i18n.t('libs.autocomplete')],
-    ['callbackname', 'spiralComplete']
+    ['callbackname', 'comicComplete']
   ]);
 
   // This tells pause Till Empty that we're ready to start checking for
@@ -149,7 +151,7 @@ paper.pickSpiralImage = function() {
   });
 };
 
-paper.loadSpiralImage = function (path) {
+paper.loadComicImage = function (path) {
   paper.canvas.mainLayer.activate(); // Draw the raster to the main layer
   if (raster) raster.remove();
   try {

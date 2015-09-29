@@ -15,7 +15,7 @@ mode.pageInitReady = function () {
   // Initialize the paper.js canvas with wrapper margin and other settings.
   canvas.domInit({
     replace: '#paper-placeholder', // jQuery selecter of element to replace
-    paperScriptFile: 'spiral.ps.js', // The main PaperScript file to load
+    paperScriptFile: 'comic.ps.js', // The main PaperScript file to load
     wrapperMargin: {
       top: 30,
       left: 30,
@@ -40,7 +40,7 @@ function paperLoadedInit() {
 // Catch CNCServer buffered callbacks
 mode.onCallbackEvent = function(name) {
   switch (name) {
-    case 'spiralComplete': // Should happen when we're completely done
+    case 'comicComplete': // Should happen when we're completely done
       $('#pause').attr('class', 'ready')
         .attr('title', t('modes.print.status.ready'))
         .text(robopaint.t('common.action.start'))
@@ -66,14 +66,14 @@ mode.bindControls = function(){
     var cancelPrint = confirm(mode.t("status.confirm"));
     if (cancelPrint) {
       paper.resetAll(); // Cleanup paper portions
-      mode.onCallbackEvent('spiralComplete');
+      mode.onCallbackEvent('comicComplete');
       mode.fullCancel(mode.t('status.cancelled'));
     }
   });
 
   // Pick file (mostly handled in the PaperScript spiral.ps.js)
   $('#picker').click(function(){
-    paper.pickSpiralImage();
+    paper.pickComicImage();
   });
 
   // Bind pause click and functionality
