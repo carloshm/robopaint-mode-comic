@@ -13,61 +13,15 @@ paper.motionPath = new Path({
 
 // Reset Everything on non-mainLayer and vars
 paper.resetAll = function() {
-  if (spiral) spiral.remove();
-
   paper.motionPath.removeSegments(0);
 }
 
 // Please note: dragging and dropping images only works for
 // certain browsers when serving this script online:
-var spiral, position, max;
-var count = 0;
-var grow = false;
 var raster = null;
 
-function onFrame(event) {
-  canvas.onFrame(event);
-
-  if (grow) {
-    if (raster && (view.center - position).length < max) {
-      for (var i = 0, l = count / 36 + 1; i < l; i++) {
-        growSpiral();
-      }
-      spiral.smooth();
-    } else {
-      grow = false;
-      if (paper.spiralComplete) paper.spiralComplete();
-
-      // Enable the start/pause button after the spiral has been made.
-      $('#pause').prop('disabled', false);
-    }
-  }
-}
-
-function growSpiral() {
-  count++;
-  var vector = new Point({
-    angle: count * 5,
-    length: count / 100
-  });
-  var rot = vector.rotate(90);
-  var color = raster.getAverageColor(position + vector / 2);
-  var value = color ? (1 - color.gray) * 3.7 : 0;
-
-  paper.motionPath.add(position + vector / 2);
-  var h = robopaint.utils.map((color ? color.gray : 0), 0, 1, 1, 0.4);
-  paper.motionPath.data.height.push(h);
-
-  rot.length = Math.max(value, 0.2);
-  spiral.add(position + vector - rot);
-  spiral.insert(0, position + vector + rot);
-  position += vector;
-}
-
-
-paper.resetSpiral = function(callback) {
+paper.resetComic = function(callback) {
   paper.motionPath.removeSegments(0); // Remove all motionPath segments
-  grow = true;
 
   paper.comicComplete = callback;
 
@@ -75,19 +29,38 @@ paper.resetSpiral = function(callback) {
   raster.fitBounds(view.bounds);
 
   paper.canvas.tempLayer.activate(); // Draw the spiral on the tempLayer
-  if (spiral) {
-    spiral.remove();
+}
+
+
+paper.testRaster = function () {
+  paper.canvas.tempLayer.activate();
+
+  console.log(raster);
+
+  try {
+    for (var y = 0; y < raster.height; y++) {
+      for(var x = 0; x < raster.width; x++) {
+        // Get the color of the pixel:
+        var color = raster.getPixel(x, y);
+
+        // Create a circle shaped path:
+        var path = new Path.Circle({
+          center: new Point(x, y),
+          radius: 6
+        });
+
+        // Set the fill color of the path to the color
+        // of the pixel:
+        path.fillColor = color;
+      }
+    }
+  } catch(e) {
+    console.error('Problem rastering', e);
   }
 
-  position = view.center;
-  count = 0;
-  spiral = new Path({
-    fillColor: 'black',
-    closed: true
-  });
-
-  position = view.center;
-  max = Math.min(raster.bounds.width, raster.bounds.height) * 0.5;
+  // Move the active layer to the center of the view, so all 
+  // the created paths in it appear centered.
+//  project.activeLayer.position = view.center;
 }
 
 // Automatically paint the single spiral path.
@@ -96,8 +69,6 @@ paper.autoPaintComic = function(){
   // run them. This ensures a smooth start.
   robopaint.pauseTillEmpty(true);
   
-  console.log(spiral);
-
   mode.run([
     'wash',
     ['media', 'color0'],
@@ -105,16 +76,26 @@ paper.autoPaintComic = function(){
     'up'
   ]);
 
-  var path = paper.motionPath;
+// Initial move without height set to get out onto the canvas.
+  mode.run('move', {x: 0, y: 0});
 
-  // Initial move without height set to get out onto the canvas.
-  mode.run('move', {x: path.firstSegment.point.x, y: path.firstSegment.point.y});
-  _.each(path.segments, function(seg, segIndex){
-    mode.run([
-      ['height', path.data.height[segIndex]],
-      ['move', {x: seg.point.x, y: seg.point.y}]
-    ]);
-  });
+  paper.canvas.tempLayer.activate();
+  var preview = project.activeLayer.addChild(raster.clone());
+
+for (var y = 0; y < raster.height; y++) {
+      for(var x = 0; x < raster.width; x++) {
+        // Get the color of the pixel:
+        var pixel = raster.getPixel(x, y);
+        preview.setPixel(x, y, new Color(pixel.gray > 0.5 ? 1 : 0));
+      }
+    }
+
+//  _.each(path.segments, function(seg, segIndex){
+//    mode.run([
+//      ['height', path.data.height[segIndex]],
+//      ['move', {x: seg.point.x, y: seg.point.y}]
+//    ]);
+//  });
 
   mode.run([
     'wash',
@@ -129,11 +110,6 @@ paper.autoPaintComic = function(){
   robopaint.pauseTillEmpty(false);
 }
 
-function onKeyDown(event) {
-  if (event.key == 'space') {
-    spiral.selected = !spiral.selected;
-  }
-}
 
 paper.pickComicImage = function() {
   mainWindow.dialog({
@@ -163,7 +139,7 @@ paper.loadComicImage = function (path) {
     raster.onLoad = function() {
       raster.fitBounds(view.bounds);
       paper.canvas.mainLayer.opacity = 0.1;
-      paper.resetSpiral();
+      paper.resetComic();
       $('#pause').prop('disabled', true);
     }
   } catch(e) {
