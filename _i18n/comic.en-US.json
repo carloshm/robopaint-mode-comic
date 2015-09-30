@@ -7,9 +7,9 @@
   },
   "info":{
     "description": "Raster paint a photo",
-    "title": "Raster Paint",
+    "title": "Comic Paint",
     "detail": "Automatically paint a photo as a raster.",
-    "word": "Raster"
+    "word": "Comic"
   },
   "status": {
     "confirm": "Are you sure you want to cancel the current raster print?",
