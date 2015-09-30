@@ -90,7 +90,7 @@ mode.bindControls = function(){
       $('#cancel').prop('disabled', false); // Enable the cancel print button
 
       // Actually go and paint the comic
-      paper.autoPaintSpiral();
+      paper.autoPaintComic();
 
     } else {
       // With something in the queue... we're either pausing, or resuming
