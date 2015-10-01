@@ -20,6 +20,11 @@ paper.resetAll = function() {
 // certain browsers when serving this script online:
 var raster = null;
 
+var pixelSize = {
+      w: 0.18,   // Measured using penDotSizeTest (and magic) for a Sharpie Pen Fine Point
+      h: 0.24825 // Calculated based on WCB aspect ratio
+    };
+
 paper.resetComic = function(callback) {
   paper.motionPath.removeSegments(0); // Remove all motionPath segments
 
@@ -82,12 +87,34 @@ paper.autoPaintComic = function(){
   paper.canvas.tempLayer.activate();
   var preview = project.activeLayer.addChild(raster.clone());
 
+  var rasterData = raster.getImageData(new Rectangle(new Point(0, 0), raster.size)).data;
+  var rasterWidth = raster.width;
+  var penState = 1; // 1 is up, 0 is down
+
 for (var y = 0; y < raster.height; y++) {
-      for(var x = 0; x < raster.width; x++) {
+      for(var x = 0; x < rasterWidth; x++) {
         // Get the color of the pixel:
-        var pixel = raster.getPixel(x, y);
-        preview.setPixel(x, y, new Color(pixel.gray > 0.5 ? 1 : 0));
+        var red = rasterData[((rasterWidth * y) + x) * 4] / 255.0;
+        var green = rasterData[((rasterWidth * y) + x) * 4 + 1] / 255.0;
+        var blue = rasterData[((rasterWidth * y) + x) * 4 + 2] / 255.0;
+        var alpha = rasterData[((rasterWidth * y) + x) * 4 + 3] / 255.0;
+
+        var pixelColor = new Color(red, green, blue, alpha).gray < 0.5 ? 0 : 1;
+
+        preview.setPixel(x, y, new Color(pixelColor));
+
+        if(pixelColor !== penState) {
+          mode.run([
+            [pixelColor === 0 ? 'down' : 'up'],
+            ['move', {x: pixelSize.w * x, y: pixelSize.h * y}]
+          ]);
+        }
       }
+      mode.run([
+        ['move', {x: pixelSize.w * (x + 1), y: pixelSize.h * y}],
+        ['up']
+      ]);
+      penState = 1; // Reset the pen to up
     }
 
 //  _.each(path.segments, function(seg, segIndex){
@@ -140,7 +167,7 @@ paper.loadComicImage = function (path) {
       raster.fitBounds(view.bounds);
       paper.canvas.mainLayer.opacity = 0.1;
       paper.resetComic();
-      $('#pause').prop('disabled', true);
+      $('#pause').prop('disabled', false);
     }
   } catch(e) {
     console.error('Problem loading image:', path, e);
