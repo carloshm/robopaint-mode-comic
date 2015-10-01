@@ -64,20 +64,15 @@ mode.bindControls = function(){
   $('#pause').prop('disabled', false);
   $('#cancel').prop('disabled', false);
 
-  $('#cancel').click(function () {
-    console.log("Running");
-    paper.testRaster();
-  });
-
   // Cancel Print
-//  $('#cancel').click(function(){
-//    var cancelPrint = confirm(mode.t("status.confirm"));
-//    if (cancelPrint) {
-//      paper.resetAll(); // Cleanup paper portions
-//      mode.onCallbackEvent('comicComplete');
-//      mode.fullCancel(mode.t('status.cancelled'));
-//    }
-//  });
+  $('#cancel').click(function(){
+    var cancelPrint = confirm(mode.t("status.confirm"));
+    if (cancelPrint) {
+      paper.resetAll(); // Cleanup paper portions
+      mode.onCallbackEvent('comicComplete');
+      mode.fullCancel(mode.t('status.cancelled'));
+    }
+  });
 
   // Pick file (mostly handled in the PaperScript comic.ps.js)
   $('#picker').click(function(){
