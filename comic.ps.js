@@ -88,6 +88,7 @@ paper.autoPaintComic = function(){
   var preview = project.activeLayer.addChild(raster.clone());
 
   var rasterData = raster.getImageData(new Rectangle(new Point(0, 0), raster.size)).data;
+  var previewData = raster.getContext(true).getImageData(0, 0, raster.width, raster.height).data;
   var rasterWidth = raster.width;
   var penState = 1; // 1 is up, 0 is down
 
@@ -99,9 +100,12 @@ for (var y = 0; y < raster.height; y++) {
         var blue  = rasterData[((rasterWidth * y) + x) * 4 + 2] / 255.0;
         var alpha = rasterData[((rasterWidth * y) + x) * 4 + 3] / 255.0;
 
-        var pixelColor = new Color(red, green, blue, alpha).gray < 0.5 ? 0 : 1;
+        var pixelColor = new Color(red, green, blue, alpha).gray < 0.5 ? 0 : 255;
 
-        preview.setPixel(x, y, new Color(pixelColor));
+        previewData[((rasterWidth * y) + x) * 4]     = pixelColor;
+        previewData[((rasterWidth * y) + x) * 4 + 1] = pixelColor;
+        previewData[((rasterWidth * y) + x) * 4 + 2] = pixelColor;
+        previewData[((rasterWidth * y) + x) * 4 + 3] = 255;
 
         if(pixelColor !== penState) {
           mode.run([
