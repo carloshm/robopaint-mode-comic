@@ -94,9 +94,9 @@ paper.autoPaintComic = function(){
 for (var y = 0; y < raster.height; y++) {
       for(var x = 0; x < rasterWidth; x++) {
         // Get the color of the pixel:
-        var red = rasterData[((rasterWidth * y) + x) * 4] / 255.0;
+        var red   = rasterData[((rasterWidth * y) + x) * 4]     / 255.0;
         var green = rasterData[((rasterWidth * y) + x) * 4 + 1] / 255.0;
-        var blue = rasterData[((rasterWidth * y) + x) * 4 + 2] / 255.0;
+        var blue  = rasterData[((rasterWidth * y) + x) * 4 + 2] / 255.0;
         var alpha = rasterData[((rasterWidth * y) + x) * 4 + 3] / 255.0;
 
         var pixelColor = new Color(red, green, blue, alpha).gray < 0.5 ? 0 : 1;
