@@ -9,7 +9,6 @@
     "core": true,
     "debug": true,
     "i18n": "native",
-    "icon": "icon-print",
     "index": "comic.html",
     "name": "comic",
     "opensvg": false,
@@ -19,7 +18,13 @@
       "jquery",
       "underscore",
       "mediasets"
-    ]
+    ],
+    "graphics": {
+      "icon": "images/mona.jpg",
+      "previews": [
+        "images/mona.jpg"
+      ]
+    }
   },
   "dependencies": {
     "datauri": "^0.7.1"

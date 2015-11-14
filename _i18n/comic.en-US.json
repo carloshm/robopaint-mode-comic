@@ -6,6 +6,8 @@
     "basetype": "mode"
   },
   "info":{
+    "name": "Raster draw a comic",
+    "use": "Raster draw a photo",
     "description": "Raster paint a photo",
     "title": "Comic Paint",
     "detail": "Automatically paint a photo as a raster.",
