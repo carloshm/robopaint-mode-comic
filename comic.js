@@ -61,14 +61,10 @@ mode.onMessage = function(channel, data) {
 
 // Mode API called callback for binding the controls
 mode.bindControls = function(){
-  $('#pause').prop('disabled', false);
-  $('#cancel').prop('disabled', false);
-
   // Cancel Print
   $('#cancel').click(function(){
     var cancelPrint = confirm(mode.t("status.confirm"));
     if (cancelPrint) {
-      paper.resetAll(); // Cleanup paper portions
       mode.onCallbackEvent('comicComplete');
       mode.fullCancel(mode.t('status.cancelled'));
     }
