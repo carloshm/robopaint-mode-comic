@@ -119,30 +119,75 @@ paper.autoPaintComic = function() {
   var rasterWidth = raster.width;
   var rasterHeight = raster.height;
   var penState = 1; // 1 is up, 0 is down; this is the representation on the canvas
+  var pixelPen; // The Z position of the pen for this pixel
+  var pixelVal; // The value of the pixel
+
+  // penState is the state of the physical pen and must only be written to
+  // when a pen up/down command is issued
+  // pixelPen is the Z position of the pen for the current pixel and is
+  // compared to penState to determine if a pen up/down command needs to be sent
+  // pixelVal is the value of the current pixel
+
+var penCommand, oldPenCommand;
 
   for(var y = 0; y < rasterHeight; y++) {
     for(var x = 0; x < rasterWidth; x++) {
-      pixelColor = previewData[((rasterWidth * y) + x) * 4];
+      pixelVal = previewData[((rasterWidth * y) + x) * 4];
 
-      if(pixelColor !== penState) {
+      if(pixelVal === 0) {
+        pixelPen = 0; // The pen should be down
+        penCommand = 'down';
+      } else {
+        console.log("UP!!!!!!");
+        pixelPen = 1;
+        penCommand = 'up';
+      }
+
+      // penCommand = pixelPen === 0 ? 'down' : 'up';
+
+      if(penCommand === 'down' && pixelPen !== 0 || penCommand === 'up' && pixelPen === 0) {
+        console.log("ERROR!!!!");
+        console.log('pixelVal ' + pixelVal + '  pixelPen ' + pixelPen + '  penCommand ' + penCommand);
+      }
+
+      if (pixelVal === 255) {
+        console.log(penCommand);
+        if(penCommand !== 'up') {
+          console.log("UP ERRORO!!!#@!!");
+        }
+      }
+
+      if(oldPenCommand !== penCommand) {
+        console.log('incoming command!!!' + penCommand)
         mode.run([
-          [pixelColor === 0 ? 'down' : 'up'],
+          [penCommand],
+          [penCommand],
           ['move', {x: pixelSize.w * x, y: pixelSize.h * y}]
         ]);
-        penState = pixelColor;
+
+        oldPenCommand = penCommand;
+        penState = pixelPen;
       }
     }
 
+    console.log('y' + y);
+
     // Pen is down so we must move over for the last pixel
-    if(penState === 0) {
+    if(true || penState === 0) {
       mode.run('move', {x: pixelSize.w * (x + 1), y: pixelSize.h * y});
     }
 
     mode.run([
       ['up'],
+      ['up'],
       ['move', {x: 0, y: pixelSize.h * (y + 1)}]
     ]);
-    penState = 1; // Reset the pen to up
+
+    // The pen X commands are duplicated here. I am trying to figure out what is not working
+
+    // I set this to two to get this to reset the pen state at the begenning
+    // of each line
+    penState = 2; // Reset the pen to up
   }
 
 
