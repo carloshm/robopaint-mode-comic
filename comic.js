@@ -30,7 +30,7 @@ mode.pageInitReady = function () {
 function paperLoadedInit() {
 
   // Build the initial Spiral
-  paper.loadComicImage(mode.path.dir + '/images/mona.jpg');
+  paper.loadComicImage(mode.path.dir + '/images/64px-Checkerboard_pattern.svg.png');
 
   // With Paper ready, send a single up to fill values for buffer & pen.
   mode.run('up');
