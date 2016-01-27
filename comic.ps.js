@@ -118,31 +118,40 @@ paper.autoPaintComic = function() {
 
   var rasterWidth = raster.width;
   var rasterHeight = raster.height;
-  var penState = 1; // 1 is up, 0 is down; this is the representation on the canvas
+
+  var penPos = 'up';
+  var pixelPos;
 
   for(var y = 0; y < rasterHeight; y++) {
     for(var x = 0; x < rasterWidth; x++) {
-      pixelColor = previewData[((rasterWidth * y) + x) * 4];
+      pixelVal = previewData[((rasterWidth * y) + x) * 4];
 
-      if(pixelColor !== penState) {
-        mode.run([
-          [pixelColor === 0 ? 'down' : 'up'],
-          ['move', {x: pixelSize.w * x, y: pixelSize.h * y}]
-        ]);
-        penState = pixelColor;
+      if(pixelVal === 0) {
+        pixelPos = 'down';
+      } else {
+        pixelPos = 'up';
+      }
+
+      // The bug seems to be with mode.run skipping things/ not ordering them
+      // correctly. Same for line 153
+      if(penPos !== pixelPos) {
+        console.log('updating pen pos!!! ' + pixelPos + '  old ' + penPos);
+        mode.run(pixelPos);
+        mode.run('move', {x: pixelSize.w * x, y: pixelSize.h * y});
+        penPos = pixelPos;
       }
     }
 
-    // Pen is down so we must move over for the last pixel
-    if(penState === 0) {
+    console.log('y' + y);
+
+    // If pen is down we must move over for the last pixel
+    if(penPos == 'down') {
       mode.run('move', {x: pixelSize.w * (x + 1), y: pixelSize.h * y});
     }
 
-    mode.run([
-      ['up'],
-      ['move', {x: 0, y: pixelSize.h * (y + 1)}]
-    ]);
-    penState = 1; // Reset the pen to up
+    mode.run('up');
+    mode.run('move', {x: 0, y: pixelSize.h * (y + 1)});
+    penPos = 'up';
   }
 
 
