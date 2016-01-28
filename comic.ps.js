@@ -123,7 +123,7 @@ paper.autoPaintComic = function() {
   var pixelPos;
 
   for(var y = 0; y < rasterHeight; y++) {
-    for(var x = 0; x < rasterWidth; x++) {
+    for(var x = y % 2 * (rasterWidth - 1); x !== ((y + 1) % 2 * (rasterWidth + 1)) - 1; x += Math.pow(-1, y)) {
       pixelVal = previewData[((rasterWidth * y) + x) * 4];
 
       if(pixelVal === 0) {
@@ -132,26 +132,23 @@ paper.autoPaintComic = function() {
         pixelPos = 'up';
       }
 
-      // The bug seems to be with mode.run skipping things/ not ordering them
-      // correctly. Same for line 153
       if(penPos !== pixelPos) {
-        console.log('updating pen pos!!! ' + pixelPos + '  old ' + penPos);
-        mode.run(pixelPos);
-        mode.run('move', {x: pixelSize.w * x, y: pixelSize.h * y});
+        mode.run([
+          ['move', {x: pixelSize.w * x, y: pixelSize.h * y}],
+          pixelPos]
+        );
         penPos = pixelPos;
       }
     }
 
-    console.log('y' + y);
-
     // If pen is down we must move over for the last pixel
     if(penPos == 'down') {
-      mode.run('move', {x: pixelSize.w * (x + 1), y: pixelSize.h * y});
+      mode.run([
+        ['move', {x: pixelSize.w * (x + Math.pow(-1, y)), y: pixelSize.h * y}],
+        'up']
+      );
+      penPos = 'up';
     }
-
-    mode.run('up');
-    mode.run('move', {x: 0, y: pixelSize.h * (y + 1)});
-    penPos = 'up';
   }
 
 
