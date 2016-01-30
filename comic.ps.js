@@ -63,7 +63,7 @@ function growRaster() {
 }
 
 
-paper.resetComic = function(callback) {
+paper.resetComic = function (callback) {
   paper.comicComplete = callback;
 
   // Transform the raster, so it fills the view:
@@ -107,7 +107,7 @@ paper.autoPaintComic = function() {
     'up'
   ]);
 
-// Initial move without height set to get out onto the canvas.
+  // Initial move without height set to get out onto the canvas.
   mode.run('move', {x: 0, y: 0});
 
 
@@ -131,18 +131,18 @@ paper.autoPaintComic = function() {
     return {x: x * pixelSize.w + drawingOffset.x, y: y * pixelSize.h + drawingOffset.y}
   }
 
-  for(var y = 0; y < rasterHeight; y++) {
+  for (var y = 0; y < rasterHeight; y++) {
     var step = Math.pow(-1, y);
-    for(var x = y % 2 * (rasterWidth - 1); x !== ((y + 1) % 2 * (rasterWidth + 1)) - 1; x += step) {
+    for (var x = y % 2 * (rasterWidth - 1); x !== ((y + 1) % 2 * (rasterWidth + 1)) - 1; x += step) {
       pixelVal = previewData[((rasterWidth * y) + x) * 4];
 
-      if(pixelVal === 0) {
+      if (pixelVal === 0) {
         pixelPos = 'down';
       } else {
         pixelPos = 'up';
       }
 
-      if(penPos !== pixelPos) {
+      if (penPos !== pixelPos) {
         mode.run([
           ['move', realPosition(x, y)],
           pixelPos]
@@ -152,7 +152,7 @@ paper.autoPaintComic = function() {
     }
 
     // If pen is down we must move over for the last pixel and down for the next line
-    if(penPos == 'down') {
+    if (penPos == 'down') {
       // x has been incremented from the for loop this just executes the move
       mode.run([
         ['move', realPosition(x, y)],
@@ -176,12 +176,8 @@ paper.autoPaintComic = function() {
 }
 
 
-
-
-// Image chooser stuff
-
 // Prompt the user for the path to the image
-paper.pickComicImage = function() {
+paper.pickComicImage = function () {
   mainWindow.dialog({
     t: 'OpenDialog',
     title: mode.t('filepick.title'),
@@ -207,15 +203,16 @@ paper.loadComicImage = function (path) {
       position: view.center
     });
 
-    raster.onLoad = function() {
+    raster.onLoad = function () {
       raster.fitBounds(view.bounds);
       paper.canvas.mainLayer.opacity = 0.2;
       paper.resetComic();
       $('#pause').prop('disabled', true);
     }
-  } catch(e) {
+  } catch (e) {
     console.error('Problem loading image:', path, e);
   }
 };
+
 
 paperLoadedInit();
