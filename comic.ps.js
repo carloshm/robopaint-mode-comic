@@ -95,12 +95,7 @@ paper.resetComic = function(callback) {
 }
 
 
-
-
 paper.autoPaintComic = function() {
-  // pixelSize.h = paper.canvas.actionLayer.bounds.height / raster.height;
-  // pixelSize.w = paper.canvas.actionLayer.bounds.width / raster.width;
-
   // Wait for all these commands to stream in before starting to actually
   // run them. This ensures a smooth start.
   robopaint.pauseTillEmpty(true);
@@ -122,8 +117,23 @@ paper.autoPaintComic = function() {
   var penPos = 'up';
   var pixelPos;
 
+  pixelSize.w = pixelSize.h = Math.min(
+    robopaint.canvas.width / rasterWidth,
+    robopaint.canvas.height / rasterHeight
+  );
+
+  var drawingOffset = {
+    x: (robopaint.canvas.width - rasterWidth * pixelSize.w) / 2,
+    y: (robopaint.canvas.height - rasterHeight * pixelSize.h) / 2,
+  }
+
+  function realPosition(x, y) {
+    return {x: x * pixelSize.w + drawingOffset.x, y: y * pixelSize.h + drawingOffset.y}
+  }
+
   for(var y = 0; y < rasterHeight; y++) {
-    for(var x = y % 2 * (rasterWidth - 1); x !== ((y + 1) % 2 * (rasterWidth + 1)) - 1; x += Math.pow(-1, y)) {
+    var step = Math.pow(-1, y);
+    for(var x = y % 2 * (rasterWidth - 1); x !== ((y + 1) % 2 * (rasterWidth + 1)) - 1; x += step) {
       pixelVal = previewData[((rasterWidth * y) + x) * 4];
 
       if(pixelVal === 0) {
@@ -134,20 +144,20 @@ paper.autoPaintComic = function() {
 
       if(penPos !== pixelPos) {
         mode.run([
-          ['move', {x: pixelSize.w * x, y: pixelSize.h * y}],
+          ['move', realPosition(x, y)],
           pixelPos]
         );
         penPos = pixelPos;
       }
     }
 
-    // If pen is down we must move over for the last pixel
+    // If pen is down we must move over for the last pixel and down for the next line
     if(penPos == 'down') {
+      // x has been incremented from the for loop this just executes the move
       mode.run([
-        ['move', {x: pixelSize.w * (x + Math.pow(-1, y)), y: pixelSize.h * y}],
-        'up']
-      );
-      penPos = 'up';
+        ['move', realPosition(x, y)],
+        ['move', realPosition(x, y + 1)]
+      ]);
     }
   }
 
