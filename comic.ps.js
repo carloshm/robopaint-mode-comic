@@ -127,14 +127,17 @@ paper.autoPaintComic = function() {
     y: (robopaint.canvas.height - rasterHeight * pixelSize.h) / 2,
   }
 
+  pixelSize.h = pixelSize.h / 3;
+
   function realPosition(x, y) {
     return {x: x * pixelSize.w + drawingOffset.x, y: y * pixelSize.h + drawingOffset.y}
   }
 
-  for (var y = 0; y < rasterHeight; y++) {
+  for (var y = 0; y < rasterHeight * 3; y++) {
     var step = Math.pow(-1, y);
+    var yPixel = Math.floor(y / 3);
     for (var x = y % 2 * (rasterWidth - 1); x !== ((y + 1) % 2 * (rasterWidth + 1)) - 1; x += step) {
-      pixelVal = previewData[((rasterWidth * y) + x) * 4];
+      pixelVal = previewData[((rasterWidth * yPixel) + x) * 4];
 
       if (pixelVal === 0) {
         pixelPos = 'down';
