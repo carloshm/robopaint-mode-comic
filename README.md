@@ -1,4 +1,4 @@
-# Spiral Paint
+# Comic Paint
 
 This module is a mode for [RoboPaint](https://github.com/evil-mad/robopaint),
 the software for drawing robots, and your
