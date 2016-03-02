@@ -15,9 +15,7 @@
     "weight": 3,
     "dependencies": [
       "paper",
-      "jquery",
-      "underscore",
-      "mediasets"
+      "jquery"
     ],
     "graphics": {
       "icon": "images/mona.jpg",
