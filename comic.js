@@ -30,7 +30,9 @@ mode.pageInitReady = function () {
 function paperLoadedInit() {
 
   // Build the initial Spiral
-  paper.loadComicImage(mode.path.dir + '/images/64px-Checkerboard_pattern.svg.png');
+  paper.loadComicImage(mode.path.dir + '/images/mona.jpg');
+
+  mode.settings.$manage('.managed');
 
   // With Paper ready, send a single up to fill values for buffer & pen.
   mode.run('up');
@@ -40,6 +42,9 @@ function paperLoadedInit() {
 // Catch CNCServer buffered callbacks
 mode.onCallbackEvent = function(name) {
   switch (name) {
+    case 'comicBegin': // Should happen when we've just started
+      $('#pause').prop('disabled', false); // Enable pause button
+      break;
     case 'comicComplete': // Should happen when we're completely done
       $('#pause').attr('class', 'ready')
         .attr('title', t('modes.print.status.ready'))
@@ -89,7 +94,7 @@ mode.bindControls = function(){
       $('#cancel').prop('disabled', false); // Enable the cancel print button
 
       // Actually go and paint the comic
-      paper.autoPaintComic();
+      paper.autoPaintComic(parseInt($('#repeattimes').val()));
 
     } else {
       // With something in the queue... we're either pausing, or resuming

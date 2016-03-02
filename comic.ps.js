@@ -24,6 +24,8 @@ var numPixels;
 
 var pixelSize = {w: 1, h: 1};
 
+var test = false;
+
 
 function onFrame(event) {
   canvas.onFrame(event);
@@ -47,12 +49,22 @@ function onFrame(event) {
 
 function growRaster() {
   // Get the color of the pixel:
-  var red   = rasterData[count * 4]     / 255.0;
-  var green = rasterData[count * 4 + 1] / 255.0;
-  var blue  = rasterData[count * 4 + 2] / 255.0;
-  var alpha = rasterData[count * 4 + 3] / 255.0;
+  var red   = rasterData[count * 4]     / 255;
+  var green = rasterData[count * 4 + 1] / 255;
+  var blue  = rasterData[count * 4 + 2] / 255;
+  var alpha = rasterData[count * 4 + 3] / 255;
 
+  // This expects red, green, blue, and alpha to range from 0 to 1.
+  // Divide red, green, blue, and alpha by 255 if using the line below.
   var pixelColor = new Color(red, green, blue, alpha).gray < 0.5 ? 0 : 255;
+
+  // This expects red, green, blue, and alpha to range from 0 to 255.
+  // Divide red, green, blue, and alpha by 255 if using the line below.
+  // if (red < 127 && blue < 127 && green < 127) {
+  //      var pixelColor = 0;
+  //    } else {
+  //      var pixelColor = 255;
+  //    }
 
   previewData[count * 4]     = pixelColor;
   previewData[count * 4 + 1] = pixelColor;
@@ -95,12 +107,13 @@ paper.resetComic = function (callback) {
 }
 
 
-paper.autoPaintComic = function() {
+paper.autoPaintComic = function(repeatLineTimes) {
   // Wait for all these commands to stream in before starting to actually
   // run them. This ensures a smooth start.
   robopaint.pauseTillEmpty(true);
 
   mode.run([
+    ['callbackname', 'comicBegin'],
     'wash',
     ['media', 'color0'],
     ['status', mode.t('status.printing')],
@@ -124,17 +137,36 @@ paper.autoPaintComic = function() {
 
   var drawingOffset = {
     x: (robopaint.canvas.width - rasterWidth * pixelSize.w) / 2,
-    y: (robopaint.canvas.height - rasterHeight * pixelSize.h) / 2,
+    y: (robopaint.canvas.height - rasterHeight * pixelSize.h) / 2
   }
+
+  function getPixelIndex(x, y) {
+    return (y * rasterWidth + x) * 4;
+  }
+
+  if (test) {
+    drawingOffset.x = drawingOffset.y = 0;
+    pixelSize.w = pixelSize.w = 10;
+  }
+
+  pixelSize.h = pixelSize.h / repeatLineTimes;
 
   function realPosition(x, y) {
     return {x: x * pixelSize.w + drawingOffset.x, y: y * pixelSize.h + drawingOffset.y}
   }
 
-  for (var y = 0; y < rasterHeight; y++) {
+  mode.run('move', realPosition(0, 0));
+
+
+  for (var y = 0; y < rasterHeight * repeatLineTimes; y++) {
     var step = Math.pow(-1, y);
-    for (var x = y % 2 * (rasterWidth - 1); x !== ((y + 1) % 2 * (rasterWidth + 1)) - 1; x += step) {
-      pixelVal = previewData[((rasterWidth * y) + x) * 4];
+    var yPixel = Math.floor(y / repeatLineTimes);
+
+    var start =  y % 2 * (rasterWidth - 1);
+    var end   = (y + 1) % 2 * (rasterWidth + 1) - 1;
+
+    for (var x = start; x !== end; x += step) {
+      pixelVal = previewData[getPixelIndex(x, yPixel)];
 
       if (pixelVal === 0) {
         pixelPos = 'down';
@@ -143,10 +175,20 @@ paper.autoPaintComic = function() {
       }
 
       if (penPos !== pixelPos) {
-        mode.run([
-          ['move', realPosition(x, y)],
-          pixelPos]
-        );
+        // Move to finish pixel when going up.
+        // Move to before pixel when going down.
+        if (pixelPos === 'down') {
+          mode.run([
+            ['move', realPosition(step > 0 ? x : x + -step, y)],
+            'down'
+          ]);
+        } else {
+          mode.run([
+            ['move', realPosition(step > 0 ? x : x + -step, y)],
+            'up'
+          ]);
+        }
+
         penPos = pixelPos;
       }
     }
@@ -155,9 +197,10 @@ paper.autoPaintComic = function() {
     if (penPos == 'down') {
       // x has been incremented from the for loop this just executes the move
       mode.run([
-        ['move', realPosition(x, y)],
-        ['move', realPosition(x, y + 1)]
+        ['move', realPosition(step > 0 ? x : x + -step, y)],
+        'up'
       ]);
+      penPos = 'up';
     }
   }
 
