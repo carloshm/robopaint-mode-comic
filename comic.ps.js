@@ -59,7 +59,7 @@ function growRaster() {
   var pixelColor = new Color(red, green, blue, alpha).gray < 0.5 ? 0 : 255;
 
   // This expects red, green, blue, and alpha to range from 0 to 255.
-  // Divide red, green, blue, and alpha by 255 if using the line below.
+  // Do not divide red, green, blue, and alpha by 255 if using the line below.
   // if (red < 127 && blue < 127 && green < 127) {
   //      var pixelColor = 0;
   //    } else {
