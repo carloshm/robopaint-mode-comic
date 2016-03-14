@@ -66,6 +66,20 @@ function growRaster() {
   //      var pixelColor = 255;
   //    }
 
+  // CMYK based thresholding
+  // var black = 1 - Math.max(red, green, blue);
+  // if (black === 1) {
+  //   var cyan = 0;
+  //   var magenta = 0;
+  //   var yellow = 0;
+  // } else {
+  //   var cyan = (1 - red - black) / (1 - black);
+  //   var magenta = (1 - green - black) / (1 - black);
+  //   var yellow = (1 - blue - black) / (1 - black);
+  // }
+  //
+  // var pixelColor = yellow >= 0.5 ? 0 : 255;
+
   previewData[count * 4]     = pixelColor;
   previewData[count * 4 + 1] = pixelColor;
   previewData[count * 4 + 2] = pixelColor;
