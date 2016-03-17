@@ -1,7 +1,7 @@
 {
   "name": "robopaint-mode-comic",
   "version": "0.1.0",
-  "type": "robopaint_mode",
+  "robopaint-type": "mode",
   "main": "comic.js",
   "author": "docprofsky",
   "license": "MIT",
