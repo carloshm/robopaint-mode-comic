@@ -12,7 +12,7 @@ var raster = null;
 // The print ^toolpath^; actionLayer
 var preview;
 
-var previewImageData, previewImageData;
+var previewImageData;
 
 // The number of pixels in the source image
 var numPixels;
