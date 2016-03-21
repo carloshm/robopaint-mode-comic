@@ -11,6 +11,9 @@ var dataURI = require('datauri'); // Save rasters as a single URI
 var remote = require('remote');
 var mainWindow = remote.getCurrentWindow();
 
+// True to show advanced options (CMYK printing options)
+var advanced = true;
+
 mode.pageInitReady = function () {
   // Initialize the paper.js canvas with wrapper margin and other settings.
   canvas.domInit({
@@ -33,6 +36,10 @@ function paperLoadedInit() {
   paper.loadComicImage(mode.path.dir + '/images/mona.jpg');
 
   mode.settings.$manage('.managed');
+
+  if (!advanced) {
+    $('#advancedcontrols').hide();
+  }
 
   // With Paper ready, send a single up to fill values for buffer & pen.
   mode.run('up');
@@ -165,6 +172,10 @@ mode.bindControls = function(){
       ['status', t("status.unlocked")]
     ]);
   });
+
+  $('#update').click(function() {
+    paper.resetComic();
+  });
 }
 
 // Warn the user on close about cancelling jobs.
@@ -198,4 +209,81 @@ mode.onPenUpdate = function(botPen){
 // An abbreviated buffer update event, contains paused/not paused & length.
 mode.onBufferUpdate = function(b) {
   buffer = b;
+}
+
+function growRaster(printColor, count) {
+  // Get the color of the pixel:
+  var red   = rasterData[count * 4]     / 255;
+  var green = rasterData[count * 4 + 1] / 255;
+  var blue  = rasterData[count * 4 + 2] / 255;
+  var alpha = rasterData[count * 4 + 3] / 255;
+
+  // This expects red, green, blue, and alpha to range from 0 to 1.
+  // Divide red, green, blue, and alpha by 255 if using the line below.
+  // var pixelColor = new Color(red, green, blue, alpha).gray < 0.5 ? 0 : 255;
+
+  // This expects red, green, blue, and alpha to range from 0 to 255.
+  // Do not divide red, green, blue, and alpha by 255 if using the line below.
+  // if (red < 127 && blue < 127 && green < 127) {
+  //      var pixelColor = 0;
+  //    } else {
+  //      var pixelColor = 255;
+  //    }
+
+  // CMYK based thresholding
+  var black = 1 - Math.max(red, green, blue);
+  if (black === 1) {
+    var cyan = 0;
+    var magenta = 0;
+    var yellow = 0;
+  } else {
+    var cyan = (1 - red - black) / (1 - black);
+    var magenta = (1 - green - black) / (1 - black);
+    var yellow = (1 - blue - black) / (1 - black);
+  }
+
+  var pixelColor;
+
+  switch (printColor) {
+    case 'black':
+      pixelColor = black >= 0.5 ? 0 : 255;
+      break;
+    case 'cyan':
+      pixelColor = cyan >= 0.5 && !(black >= 0.5) ? 0 : 255;
+      break;
+    case 'magenta':
+      pixelColor = magenta >= 0.5 && !(black >= 0.5) ? 0 : 255;
+      break;
+    case 'yellow':
+      pixelColor = yellow >= 0.5 && !(black >= 0.5) ? 0 : 255;
+      break;
+    case 'all':
+      if (black >= 0.5) {
+        red = green = blue = 0;
+      } else {
+        red   = (1 - cyan   ) * (1 - black) <= 0.5 ? 0 : 255;
+        green = (1 - magenta) * (1 - black) <= 0.5 ? 0 : 255;
+        blue  = (1 - yellow ) * (1 - black) <= 0.5 ? 0 : 255;
+      }
+      break;
+  }
+
+  if (printColor !== 'all') {
+    red = green = blue = pixelColor;
+    if (pixelColor === 0) {
+      paper.downCount++;
+    } else {
+      paper.upCount++;
+    }
+  } else {
+    if (black >= 0.5) {paper.downCount++;} else {paper.upCount++;}
+    if (cyan >= 0.5 && !(black >= 0.5)) {paper.downCount++;} else {paper.upCount++;}
+    if (magenta >= 0.5 && !(black >= 0.5)) {paper.downCount++;} else {paper.upCount++;}
+    if (yellow >= 0.5 && !(black >= 0.5)) {paper.downCount++;} else {paper.upCount++;}
+  }
+
+  previewData[count * 4]     = red;
+  previewData[count * 4 + 1] = green;
+  previewData[count * 4 + 2] = blue;
+  previewData[count * 4 + 3] = 255;
 }

@@ -26,66 +26,69 @@ var pixelSize = {w: 1, h: 1};
 
 var test = false;
 
+var printColor = 'black';
 
 function onFrame(event) {
   canvas.onFrame(event);
 
   if (grow) {
     if (raster && count < numPixels) {
-      for (var i = 0, l = count / 36 + 1; i < l; i++) {
-        growRaster();
+      for (var i = 0, l = count / 18 + 1; i < l; i++) {
+        growRaster(printColor, count);
+        count++;
       }
 
       preview.setImageData(previewImageData, new Point(0, 0));
     } else {
+      if (grow) {
+        console.log('upCount ' + paper.upCount + '  downCount ' + paper.downCount);
+        cncserver.api.settings.bot(function (botConf) {
+          var stepPerPx = Math.min((botConf.maxArea.height - botConf.workArea.top) / raster.height,
+          (botConf.maxArea.width - botConf.workArea.left) / raster.width);
+
+          // In steps per second
+          var maxSpeed = Number(botConf.speed.max);
+          var minSpeed = Number(botConf.speed.min);
+
+          // Percent from 0 to 100
+          var drawingSpeed = Number(botConf.speed.drawing);
+          var movingSpeed = Number(botConf.speed.moving);
+
+          var upSpeed = (movingSpeed / 100) * maxSpeed + minSpeed;
+          var downSpeed = (drawingSpeed / 100) * maxSpeed + minSpeed;
+
+          var upMoveTime = (paper.upCount * stepPerPx) / upSpeed;
+          var downMoveTime = (paper.downCount * stepPerPx) / downSpeed;
+
+          // Duration in seconds
+          function formatDuration(duration) {
+            if (duration >= 60) {
+              var seconds = duration % 60;
+              duration -= seconds;
+              seconds = Math.round(seconds);
+              var minutes = (duration / 60) % 60;
+              duration -= minutes * 60;
+              var hours = duration / (60*60);
+
+              return hours + ':' + ("00" + minutes).substr(-2,2) + ':' + ("00" + seconds).substr(-2,2);
+            } else {
+              return duration
+            }
+          }
+
+          console.log('pen up time ' +  formatDuration(upMoveTime) + '  pen down time ' + formatDuration(downMoveTime));
+          console.log('estimated total time ' + formatDuration(upMoveTime +  downMoveTime));
+          console.log('');
+        });
+      }
       grow = false;
       if (paper.comicComplete) paper.comicComplete();
 
       // Enable the start/pause button after the spiral has been made.
       $('#pause').prop('disabled', false);
+      $('#update').prop('disabled', false);
     }
   }
-}
-
-function growRaster() {
-  // Get the color of the pixel:
-  var red   = rasterData[count * 4]     / 255;
-  var green = rasterData[count * 4 + 1] / 255;
-  var blue  = rasterData[count * 4 + 2] / 255;
-  var alpha = rasterData[count * 4 + 3] / 255;
-
-  // This expects red, green, blue, and alpha to range from 0 to 1.
-  // Divide red, green, blue, and alpha by 255 if using the line below.
-  var pixelColor = new Color(red, green, blue, alpha).gray < 0.5 ? 0 : 255;
-
-  // This expects red, green, blue, and alpha to range from 0 to 255.
-  // Do not divide red, green, blue, and alpha by 255 if using the line below.
-  // if (red < 127 && blue < 127 && green < 127) {
-  //      var pixelColor = 0;
-  //    } else {
-  //      var pixelColor = 255;
-  //    }
-
-  // CMYK based thresholding
-  // var black = 1 - Math.max(red, green, blue);
-  // if (black === 1) {
-  //   var cyan = 0;
-  //   var magenta = 0;
-  //   var yellow = 0;
-  // } else {
-  //   var cyan = (1 - red - black) / (1 - black);
-  //   var magenta = (1 - green - black) / (1 - black);
-  //   var yellow = (1 - blue - black) / (1 - black);
-  // }
-  //
-  // var pixelColor = yellow >= 0.5 ? 0 : 255;
-
-  previewData[count * 4]     = pixelColor;
-  previewData[count * 4 + 1] = pixelColor;
-  previewData[count * 4 + 2] = pixelColor;
-  previewData[count * 4 + 3] = 255;
-
-  count++;
 }
 
 
@@ -107,13 +110,26 @@ paper.resetComic = function (callback) {
     preview.remove();
   }
 
+  $('#pause').prop('disabled', true);
+  if (advanced) {
+    printColor = $('#printcolor input:checked').val();
+  }
+
   preview = project.activeLayer.addChild(raster.clone());
 
   rasterData = raster.getImageData(new Rectangle(new Point(0, 0), raster.size)).data;
   previewImageData = preview.getImageData(new Rectangle(new Point(0, 0), preview.size));
   previewData = previewImageData.data;
 
+  console.log('lineHeight ' + Math.min(
+    robopaint.canvas.width / raster.width,
+    robopaint.canvas.height / raster.height)
+  );
+
   count = 0;
+
+  paper.upCount = 0;
+  paper.downCount = 0;
 
   numPixels = raster.width * raster.height;
 
@@ -154,6 +170,12 @@ paper.autoPaintComic = function(repeatLineTimes) {
     y: (robopaint.canvas.height - rasterHeight * pixelSize.h) / 2
   }
 
+  // Make full width fit on 11in wide paper
+  pixelSize.w = pixelSize.h = Math.min(
+    robopaint.canvas.width / rasterWidth,
+    robopaint.canvas.height / rasterHeight
+  );
+
   function getPixelIndex(x, y) {
     return (y * rasterWidth + x) * 4;
   }
@@ -180,7 +202,7 @@ paper.autoPaintComic = function(repeatLineTimes) {
     var end   = (y + 1) % 2 * (rasterWidth + 1) - 1;
 
     for (var x = start; x !== end; x += step) {
-      pixelVal = previewData[getPixelIndex(x, yPixel)];
+      var pixelVal = previewData[getPixelIndex(x, yPixel)];
 
       if (pixelVal === 0) {
         pixelPos = 'down';
@@ -264,7 +286,6 @@ paper.loadComicImage = function (path) {
       raster.fitBounds(view.bounds);
       paper.canvas.mainLayer.opacity = 0.2;
       paper.resetComic();
-      $('#pause').prop('disabled', true);
     }
   } catch (e) {
     console.error('Problem loading image:', path, e);
