@@ -34,7 +34,7 @@ function onFrame(event) {
   if (grow) {
     if (raster && count < numPixels) {
       for (var i = 0, l = count / 18 + 1; i < l; i++) {
-        growRaster(printColor, count);
+        growRaster(printColor, count, raster.width);
         count++;
       }
 
@@ -113,6 +113,7 @@ paper.resetComic = function (callback) {
   $('#pause').prop('disabled', true);
   if (advanced) {
     printColor = $('#printcolor input:checked').val();
+    dither = $('#ditherenabled').prop('checked');
   }
 
   preview = project.activeLayer.addChild(raster.clone());

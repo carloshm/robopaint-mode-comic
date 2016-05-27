@@ -13,6 +13,7 @@ var mainWindow = remote.getCurrentWindow();
 
 // True to show advanced options (CMYK printing options)
 var advanced = true;
+var dither = false;
 
 mode.pageInitReady = function () {
   // Initialize the paper.js canvas with wrapper margin and other settings.
@@ -211,7 +212,7 @@ mode.onBufferUpdate = function(b) {
   buffer = b;
 }
 
-function growRaster(printColor, count) {
+function growRaster(printColor, count, rasterWidth) {
   // Get the color of the pixel:
   var red   = rasterData[count * 4]     / 255;
   var green = rasterData[count * 4 + 1] / 255;
@@ -242,6 +243,42 @@ function growRaster(printColor, count) {
     var yellow = (1 - blue - black) / (1 - black);
   }
 
+  var threshRed, threshGreen, threshBlue;
+
+  if (black >= 0.5) {
+    threshRed = threshGreen = threshBlue = 0;
+  } else {
+    threshRed   = (1 - cyan   ) * (1 - black) <= 0.5 ? 0 : 255;
+    threshGreen = (1 - magenta) * (1 - black) <= 0.5 ? 0 : 255;
+    threshBlue  = (1 - yellow ) * (1 - black) <= 0.5 ? 0 : 255;
+  }
+
+  // All color values in here will be 0 - 255
+  if (dither) {
+    var redErr   = red   * 255 - threshRed;
+    var greenErr = green * 255 - threshGreen;
+    var blueErr  = blue  * 255 - threshBlue;
+
+    var ditherErrs = [
+      {offset:               1, dist: 7/16},
+      {offset: rasterWidth - 1, dist: 3/16},
+      {offset:    rasterWidth , dist: 5/16},
+      {offset: rasterWidth + 1, dist: 1/16},
+    ];
+
+    var remainingPixels = rasterData.length / 4 - count;
+
+    for (let errPx of ditherErrs) {
+      if (remainingPixels < errPx.offset) {
+        break;
+      }
+
+      rasterData[(count + errPx.offset) * 4]     += redErr   * errPx.dist;
+      rasterData[(count + errPx.offset) * 4 + 1] += greenErr * errPx.dist;
+      rasterData[(count + errPx.offset) * 4 + 2] += blueErr  * errPx.dist;
+    }
+  }
+
   var pixelColor;
 
   switch (printColor) {
@@ -258,32 +295,32 @@ function growRaster(printColor, count) {
       pixelColor = yellow >= 0.5 && !(black >= 0.5) ? 0 : 255;
       break;
     case 'all':
-      if (black >= 0.5) {
-        red = green = blue = 0;
-      } else {
-        red   = (1 - cyan   ) * (1 - black) <= 0.5 ? 0 : 255;
-        green = (1 - magenta) * (1 - black) <= 0.5 ? 0 : 255;
-        blue  = (1 - yellow ) * (1 - black) <= 0.5 ? 0 : 255;
-      }
+      // do nothing
       break;
   }
 
+  var previewRed, previewGreen, previewBlue;
+
   if (printColor !== 'all') {
-    red = green = blue = pixelColor;
+    previewRed = previewGreen = previewBlue = pixelColor;
     if (pixelColor === 0) {
       paper.downCount++;
     } else {
       paper.upCount++;
     }
   } else {
+    previewRed   = threshRed;
+    previewGreen = threshGreen;
+    previewBlue  = threshBlue;
+
     if (black >= 0.5) {paper.downCount++;} else {paper.upCount++;}
     if (cyan >= 0.5 && !(black >= 0.5)) {paper.downCount++;} else {paper.upCount++;}
     if (magenta >= 0.5 && !(black >= 0.5)) {paper.downCount++;} else {paper.upCount++;}
     if (yellow >= 0.5 && !(black >= 0.5)) {paper.downCount++;} else {paper.upCount++;}
   }
 
-  previewData[count * 4]     = red;
-  previewData[count * 4 + 1] = green;
-  previewData[count * 4 + 2] = blue;
+  previewData[count * 4]     = previewRed;
+  previewData[count * 4 + 1] = previewGreen;
+  previewData[count * 4 + 2] = previewBlue;
   previewData[count * 4 + 3] = 255;
 }
