@@ -40,7 +40,7 @@ function onFrame(event) {
 
       preview.setImageData(previewImageData, new Point(0, 0));
     } else {
-      if (grow) {
+      if (grow && advanced) {
         console.log('upCount ' + paper.upCount + '  downCount ' + paper.downCount);
         cncserver.api.settings.bot(function (botConf) {
           var stepPerPx = Math.min((botConf.maxArea.height - botConf.workArea.top) / raster.height,
